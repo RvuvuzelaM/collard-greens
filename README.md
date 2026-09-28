@@ -28,7 +28,6 @@ CORS is open, so you can call it from any local dev server (Vite, Next.js, Angul
 | DELETE | `/maps/{id}/areas/{areaId}` | delete an area, returns `204`; pins linked to it are kept with `area_id` set to `null`, its comments are deleted |
 | GET    | `/maps/{id}/areas/{areaId}/comments` | list of comments on the area, oldest first: `[{"id","text","created_at"}]`, `404` if the area doesn't exist |
 | POST   | `/maps/{id}/areas/{areaId}/comments` | add a comment to the area, returns `201` with the created comment |
-
 | GET    | `/maps/{id}/pins` | list of pins on the map: `[{"id","name","description","status","map_id","area_id","coordinates"}]`, `404` if the map doesn't exist |
 | POST   | `/maps/{id}/pins` | create a pin on the map, returns `201` with the created pin |
 | GET    | `/maps/{id}/pins/{pinId}` | single pin, `404` if not found on that map |
