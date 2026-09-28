@@ -8,6 +8,8 @@ func New() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", handleHealthz)
+	mux.HandleFunc("GET /maps", handleListMaps)
+	mux.HandleFunc("GET /maps/{id}", handleGetMap)
 	mux.HandleFunc("/", handleNotFound)
 
 	return logging(cors(mux))
