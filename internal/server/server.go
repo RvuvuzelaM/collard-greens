@@ -10,6 +10,10 @@ func New() http.Handler {
 	mux.HandleFunc("GET /healthz", handleHealthz)
 	mux.HandleFunc("GET /maps", handleListMaps)
 	mux.HandleFunc("GET /maps/{id}", handleGetMap)
+	mux.HandleFunc("GET /maps/{id}/areas", handleListAreas)
+	mux.HandleFunc("POST /maps/{id}/areas", handleCreateArea)
+	mux.HandleFunc("GET /maps/{id}/areas/{areaId}", handleGetArea)
+	mux.HandleFunc("PATCH /maps/{id}/areas/{areaId}", handleUpdateArea)
 	mux.HandleFunc("/", handleNotFound)
 
 	return logging(cors(mux))
