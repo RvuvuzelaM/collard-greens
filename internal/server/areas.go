@@ -174,6 +174,7 @@ func handleDeleteArea(w http.ResponseWriter, r *http.Request) {
 				pins[j].AreaID = nil
 			}
 		}
+		deleteComments(mapID, commentTargetArea, areaID)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}

@@ -211,6 +211,7 @@ func handleDeletePin(w http.ResponseWriter, r *http.Request) {
 	for i, p := range pins {
 		if p.MapID == mapID && p.ID == pinID {
 			pins = append(pins[:i], pins[i+1:]...)
+			deleteComments(mapID, commentTargetPin, pinID)
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
@@ -246,8 +247,23 @@ func areaExists(mapID, areaID string) bool {
 	areasMu.Lock()
 	defer areasMu.Unlock()
 
+	return areaExistsLocked(mapID, areaID)
+}
+
+// areaExistsLocked is areaExists for callers that already hold areasMu.
+func areaExistsLocked(mapID, areaID string) bool {
 	for _, a := range areas {
 		if a.MapID == mapID && a.ID == areaID {
+			return true
+		}
+	}
+	return false
+}
+
+// pinExistsLocked reports whether the pin is on the map. The caller must hold pinsMu.
+func pinExistsLocked(mapID, pinID string) bool {
+	for _, p := range pins {
+		if p.MapID == mapID && p.ID == pinID {
 			return true
 		}
 	}
