@@ -14,6 +14,12 @@ func New() http.Handler {
 	mux.HandleFunc("POST /maps/{id}/areas", handleCreateArea)
 	mux.HandleFunc("GET /maps/{id}/areas/{areaId}", handleGetArea)
 	mux.HandleFunc("PATCH /maps/{id}/areas/{areaId}", handleUpdateArea)
+	mux.HandleFunc("DELETE /maps/{id}/areas/{areaId}", handleDeleteArea)
+	mux.HandleFunc("GET /maps/{id}/pins", handleListPins)
+	mux.HandleFunc("POST /maps/{id}/pins", handleCreatePin)
+	mux.HandleFunc("GET /maps/{id}/pins/{pinId}", handleGetPin)
+	mux.HandleFunc("PATCH /maps/{id}/pins/{pinId}", handleUpdatePin)
+	mux.HandleFunc("DELETE /maps/{id}/pins/{pinId}", handleDeletePin)
 	mux.HandleFunc("/", handleNotFound)
 
 	return logging(cors(mux))

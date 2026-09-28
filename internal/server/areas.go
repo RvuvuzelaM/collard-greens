@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -54,8 +53,6 @@ var (
 	}
 	nextAreaID = 4
 )
-
-const maxBodyBytes = 1 << 20
 
 func handleListAreas(w http.ResponseWriter, r *http.Request) {
 	mapID := r.PathValue("id")
@@ -157,6 +154,32 @@ func handleUpdateArea(w http.ResponseWriter, r *http.Request) {
 	writeError(w, http.StatusNotFound, "area not found")
 }
 
+func handleDeleteArea(w http.ResponseWriter, r *http.Request) {
+	mapID, areaID := r.PathValue("id"), r.PathValue("areaId")
+
+	// Lock order is always pinsMu before areasMu.
+	pinsMu.Lock()
+	defer pinsMu.Unlock()
+	areasMu.Lock()
+	defer areasMu.Unlock()
+
+	for i, a := range areas {
+		if a.MapID != mapID || a.ID != areaID {
+			continue
+		}
+		areas = append(areas[:i], areas[i+1:]...)
+		// The pin-area link is optional, so pins stay and just lose the link.
+		for j, p := range pins {
+			if p.MapID == mapID && p.AreaID != nil && *p.AreaID == areaID {
+				pins[j].AreaID = nil
+			}
+		}
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	writeError(w, http.StatusNotFound, "area not found")
+}
+
 // validateArea returns an error message, or "" if the area is valid.
 func validateArea(a Area) string {
 	if a.Name == "" {
@@ -171,24 +194,4 @@ func validateArea(a Area) string {
 		}
 	}
 	return ""
-}
-
-func mapExists(id string) bool {
-	for _, m := range maps {
-		if m.ID == id {
-			return true
-		}
-	}
-	return false
-}
-
-// decodeJSON reads the request body into v, writing a 400 on failure.
-func decodeJSON(w http.ResponseWriter, r *http.Request, v any) bool {
-	dec := json.NewDecoder(http.MaxBytesReader(w, r.Body, maxBodyBytes))
-	dec.DisallowUnknownFields()
-	if err := dec.Decode(v); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON body: "+err.Error())
-		return false
-	}
-	return true
 }

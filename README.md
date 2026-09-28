@@ -25,10 +25,24 @@ CORS is open, so you can call it from any local dev server (Vite, Next.js, Angul
 | POST   | `/maps/{id}/areas` | create an area on the map, returns `201` with the created area |
 | GET    | `/maps/{id}/areas/{areaId}` | single area, `404` if not found on that map |
 | PATCH  | `/maps/{id}/areas/{areaId}` | partially update an area (any subset of fields), returns the updated area |
+| DELETE | `/maps/{id}/areas/{areaId}` | delete an area, returns `204`; pins linked to it are kept with `area_id` set to `null` |
+
+| GET    | `/maps/{id}/pins` | list of pins on the map: `[{"id","name","description","status","map_id","area_id","coordinates"}]`, `404` if the map doesn't exist |
+| POST   | `/maps/{id}/pins` | create a pin on the map, returns `201` with the created pin |
+| GET    | `/maps/{id}/pins/{pinId}` | single pin, `404` if not found on that map |
+| PATCH  | `/maps/{id}/pins/{pinId}` | partially update a pin (any subset of fields), returns the updated pin |
+| DELETE | `/maps/{id}/pins/{pinId}` | delete a pin, returns `204`, `404` if not found on that map |
 
 An area body looks like `{"name","description","coordinates":[[x,y],...]}`; `map_id` comes from
 the URL. `name` is required and `coordinates` needs at least 3 `[x, y]` points. Invalid input
 returns `400`.
+
+A pin body looks like `{"name","description","status","area_id","coordinates":[x,y]}`; `map_id`
+comes from the URL. `name` is required, `status` is `TODO` (default) or `DONE`, `coordinates` is a
+single `[x, y]` point and `area_id` is optional (`null` or omitted for no area). When set,
+`area_id` must be an area on the same map. Send `"area_id": null` in a PATCH to unlink the area.
+
+Coordinates for areas and pins are pixels on the map image, origin top-left.
 
 Every response is JSON. Errors have the shape `{"error":"<message>"}`, for example an unknown
 route returns `404` with `{"error":"not found"}`.
@@ -63,4 +77,36 @@ curl http://localhost:8080/maps/1/areas/1
 curl -X PATCH http://localhost:8080/maps/1/areas/1 \
   -H 'Content-Type: application/json' \
   -d '{"name":"Field A (renamed)"}'
+
+# delete area 1 on map 1 (linked pins are unlinked, not deleted)
+curl -i -X DELETE http://localhost:8080/maps/1/areas/1
+
+# list pins on map 1
+curl http://localhost:8080/maps/1/pins
+
+# create a pin on map 1 linked to area 1
+curl -X POST http://localhost:8080/maps/1/pins \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Fix sign","description":"Hospital sign is crooked","area_id":"1","coordinates":[60,400]}'
+
+# create a pin on map 1 without an area
+curl -X POST http://localhost:8080/maps/1/pins \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Pothole","coordinates":[200,300]}'
+
+# get a single pin on map 1
+curl http://localhost:8080/maps/1/pins/1
+
+# mark pin 1 on map 1 as done
+curl -X PATCH http://localhost:8080/maps/1/pins/1 \
+  -H 'Content-Type: application/json' \
+  -d '{"status":"DONE"}'
+
+# unlink pin 1 on map 1 from its area
+curl -X PATCH http://localhost:8080/maps/1/pins/1 \
+  -H 'Content-Type: application/json' \
+  -d '{"area_id":null}'
+
+# delete pin 1 on map 1
+curl -i -X DELETE http://localhost:8080/maps/1/pins/1
 ```

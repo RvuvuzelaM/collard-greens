@@ -30,3 +30,12 @@ func handleGetMap(w http.ResponseWriter, r *http.Request) {
 	}
 	writeError(w, http.StatusNotFound, "map not found")
 }
+
+func mapExists(id string) bool {
+	for _, m := range maps {
+		if m.ID == id {
+			return true
+		}
+	}
+	return false
+}
