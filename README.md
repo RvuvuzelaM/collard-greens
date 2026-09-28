@@ -24,3 +24,19 @@ CORS is open, so you can call it from any local dev server (Vite, Next.js, Angul
 
 Every response is JSON. Errors have the shape `{"error":"<message>"}`, for example an unknown
 route returns `404` with `{"error":"not found"}`.
+
+## Examples
+
+```
+# health check
+curl http://localhost:8080/healthz
+
+# list all maps
+curl http://localhost:8080/maps
+
+# get a single map by id
+curl http://localhost:8080/maps/1
+
+# unknown map id -> 404
+curl -i http://localhost:8080/maps/999
+```
