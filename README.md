@@ -32,8 +32,9 @@ CORS is open, so you can call it from any local dev server (Vite, Next.js, Angul
 | GET    | `/maps/{id}/pins` | list of pins on the map: `[{"id","name","description","status","map_id","area_id","coordinates"}]`, `404` if the map doesn't exist |
 | POST   | `/maps/{id}/pins` | create a pin on the map, returns `201` with the created pin |
 | GET    | `/maps/{id}/pins/{pinId}` | single pin, `404` if not found on that map |
-| PATCH  | `/maps/{id}/pins/{pinId}` | partially update a pin (any subset of fields), returns the updated pin |
+| PATCH  | `/maps/{id}/pins/{pinId}` | partially update a pin (any subset of fields except `status`), returns the updated pin |
 | DELETE | `/maps/{id}/pins/{pinId}` | delete a pin and its comments, returns `204`, `404` if not found on that map |
+| PUT    | `/maps/{id}/pins/{pinId}/status` | set the pin's status with `{"status":"TODO"\|"DONE"}`, returns the updated pin, `404` if not found on that map |
 | GET    | `/maps/{id}/pins/{pinId}/comments` | list of comments on the pin, oldest first: `[{"id","text","created_at"}]`, `404` if the pin doesn't exist |
 | POST   | `/maps/{id}/pins/{pinId}/comments` | add a comment to the pin, returns `201` with the created comment |
 
@@ -41,10 +42,13 @@ An area body looks like `{"name","description","coordinates":[[x,y],...]}`; `map
 the URL. `name` is required and `coordinates` needs at least 3 `[x, y]` points. Invalid input
 returns `400`.
 
-A pin body looks like `{"name","description","status","area_id","coordinates":[[x,y],...]}`; `map_id`
-comes from the URL. `name` is required, `status` is `TODO` (default) or `DONE`, `coordinates` is a
-list of at least 1 `[x, y]` point and `area_id` is optional (`null` or omitted for no area). When set,
-`area_id` must be an area on the same map. Send `"area_id": null` in a PATCH to unlink the area.
+A pin body looks like `{"name","description","area_id","coordinates":[[x,y],...]}`; `map_id`
+comes from the URL. `name` is required, `coordinates` is a list of at least 1 `[x, y]` point and
+`area_id` is optional (`null` or omitted for no area). When set, `area_id` must be an area on the
+same map. Send `"area_id": null` in a PATCH to unlink the area.
+
+A pin's `status` is `TODO` or `DONE`. New pins start as `TODO`, and the status can only be changed
+through `PUT /maps/{id}/pins/{pinId}/status`; sending `status` to POST or PATCH returns `400`.
 
 A comment body looks like `{"text"}`; `text` is required. `id` and `created_at` (RFC 3339, UTC)
 are set by the server.
@@ -102,7 +106,7 @@ curl -X POST http://localhost:8080/maps/1/pins \
 curl http://localhost:8080/maps/1/pins/1
 
 # mark pin 1 on map 1 as done
-curl -X PATCH http://localhost:8080/maps/1/pins/1 \
+curl -X PUT http://localhost:8080/maps/1/pins/1/status \
   -H 'Content-Type: application/json' \
   -d '{"status":"DONE"}'
 

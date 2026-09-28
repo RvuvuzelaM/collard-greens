@@ -25,22 +25,27 @@ type Pin struct {
 	Coordinates [][]float64 `json:"coordinates"`
 }
 
-// pinInput is the body of a POST request.
+// pinInput is the body of a POST request. Status is not accepted: new pins
+// start as TODO and change only through the status endpoint.
 type pinInput struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
-	Status      string      `json:"status"`
 	AreaID      *string     `json:"area_id"`
 	Coordinates [][]float64 `json:"coordinates"`
 }
 
 // pinPatch holds the optional fields of a PATCH request; nil means "unchanged".
+// Status is not accepted here; use the status endpoint.
 type pinPatch struct {
 	Name        *string        `json:"name"`
 	Description *string        `json:"description"`
-	Status      *string        `json:"status"`
 	AreaID      nullableString `json:"area_id"`
 	Coordinates [][]float64    `json:"coordinates"`
+}
+
+// pinStatusInput is the body of a PUT .../status request.
+type pinStatusInput struct {
+	Status string `json:"status"`
 }
 
 // nullableString tells apart a missing field (Set == false) from an explicit
@@ -136,15 +141,11 @@ func handleCreatePin(w http.ResponseWriter, r *http.Request) {
 	p := Pin{
 		Name:        strings.TrimSpace(in.Name),
 		Description: in.Description,
-		Status:      in.Status,
+		Status:      PinStatusTodo,
 		MapID:       mapID,
 		AreaID:      in.AreaID,
 		Coordinates: in.Coordinates,
 	}
-	if p.Status == "" {
-		p.Status = PinStatusTodo
-	}
-
 	// Hold pinsMu while validating so an area can't be deleted between the
 	// area_id check and the insert.
 	pinsMu.Lock()
@@ -182,9 +183,6 @@ func handleUpdatePin(w http.ResponseWriter, r *http.Request) {
 		if patch.Description != nil {
 			p.Description = *patch.Description
 		}
-		if patch.Status != nil {
-			p.Status = *patch.Status
-		}
 		if patch.AreaID.Set {
 			p.AreaID = patch.AreaID.Value
 		}
@@ -198,6 +196,31 @@ func handleUpdatePin(w http.ResponseWriter, r *http.Request) {
 		pins[i] = p
 		writeJSON(w, http.StatusOK, p)
 		return
+	}
+	writeError(w, http.StatusNotFound, "pin not found")
+}
+
+func handleUpdatePinStatus(w http.ResponseWriter, r *http.Request) {
+	mapID, pinID := r.PathValue("id"), r.PathValue("pinId")
+
+	var in pinStatusInput
+	if !decodeJSON(w, r, &in) {
+		return
+	}
+	if msg := validatePinStatus(in.Status); msg != "" {
+		writeError(w, http.StatusBadRequest, msg)
+		return
+	}
+
+	pinsMu.Lock()
+	defer pinsMu.Unlock()
+
+	for i, p := range pins {
+		if p.MapID == mapID && p.ID == pinID {
+			pins[i].Status = in.Status
+			writeJSON(w, http.StatusOK, pins[i])
+			return
+		}
 	}
 	writeError(w, http.StatusNotFound, "pin not found")
 }
@@ -224,8 +247,8 @@ func validatePin(p Pin) string {
 	if p.Name == "" {
 		return "name is required"
 	}
-	if p.Status != PinStatusTodo && p.Status != PinStatusDone {
-		return "status must be TODO or DONE"
+	if msg := validatePinStatus(p.Status); msg != "" {
+		return msg
 	}
 	if len(p.Coordinates) == 0 {
 		return "coordinates must contain at least 1 point"
@@ -237,6 +260,14 @@ func validatePin(p Pin) string {
 	}
 	if p.AreaID != nil && !areaExists(p.MapID, *p.AreaID) {
 		return "area_id does not reference an area on this map"
+	}
+	return ""
+}
+
+// validatePinStatus returns an error message, or "" if the status is valid.
+func validatePinStatus(status string) string {
+	if status != PinStatusTodo && status != PinStatusDone {
+		return "status must be TODO or DONE"
 	}
 	return ""
 }

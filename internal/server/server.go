@@ -22,6 +22,7 @@ func New() http.Handler {
 	mux.HandleFunc("GET /maps/{id}/pins/{pinId}", handleGetPin)
 	mux.HandleFunc("PATCH /maps/{id}/pins/{pinId}", handleUpdatePin)
 	mux.HandleFunc("DELETE /maps/{id}/pins/{pinId}", handleDeletePin)
+	mux.HandleFunc("PUT /maps/{id}/pins/{pinId}/status", handleUpdatePinStatus)
 	mux.HandleFunc("GET /maps/{id}/pins/{pinId}/comments", handleListPinComments)
 	mux.HandleFunc("POST /maps/{id}/pins/{pinId}/comments", handleCreatePinComment)
 	mux.HandleFunc("/", handleNotFound)
