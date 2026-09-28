@@ -14,24 +14,24 @@ const (
 	PinStatusDone = "DONE"
 )
 
-// Pin is a single point on a map, optionally linked to an area.
+// Pin is a set of points on a map, optionally linked to an area.
 type Pin struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"`
-	MapID       string    `json:"map_id"`
-	AreaID      *string   `json:"area_id"`
-	Coordinates []float64 `json:"coordinates"`
+	ID          string      `json:"id"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	Status      string      `json:"status"`
+	MapID       string      `json:"map_id"`
+	AreaID      *string     `json:"area_id"`
+	Coordinates [][]float64 `json:"coordinates"`
 }
 
 // pinInput is the body of a POST request.
 type pinInput struct {
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"`
-	AreaID      *string   `json:"area_id"`
-	Coordinates []float64 `json:"coordinates"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	Status      string      `json:"status"`
+	AreaID      *string     `json:"area_id"`
+	Coordinates [][]float64 `json:"coordinates"`
 }
 
 // pinPatch holds the optional fields of a PATCH request; nil means "unchanged".
@@ -40,7 +40,7 @@ type pinPatch struct {
 	Description *string        `json:"description"`
 	Status      *string        `json:"status"`
 	AreaID      nullableString `json:"area_id"`
-	Coordinates []float64      `json:"coordinates"`
+	Coordinates [][]float64    `json:"coordinates"`
 }
 
 // nullableString tells apart a missing field (Set == false) from an explicit
@@ -60,7 +60,7 @@ func (n *nullableString) UnmarshalJSON(b []byte) error {
 }
 
 // pins is in-memory mock data, guarded by pinsMu since handlers mutate it.
-// Coordinates are an [x, y] pixel on the 460x667 map image, origin top-left.
+// Coordinates are [x, y] pixels on the 460x667 map image, origin top-left.
 var (
 	pinsMu sync.Mutex
 	pins   = []Pin{
@@ -68,19 +68,19 @@ var (
 			ID: "1", MapID: "1", AreaID: ptr("1"), Status: PinStatusTodo,
 			Name:        "Check ambulance access",
 			Description: "Make sure the ambulance bay at the hospital entrance is clear.",
-			Coordinates: []float64{35, 512},
+			Coordinates: [][]float64{{14, 500}, {60, 497}, {62, 528}, {16, 531}},
 		},
 		{
 			ID: "2", MapID: "2", AreaID: ptr("2"), Status: PinStatusDone,
 			Name:        "Plant flowers",
 			Description: "Flower bed in the middle of the roundabout island.",
-			Coordinates: []float64{322, 478},
+			Coordinates: [][]float64{{305, 466}, {340, 466}, {342, 492}, {303, 492}},
 		},
 		{
 			ID: "3", MapID: "3", AreaID: nil, Status: PinStatusTodo,
 			Name:        "Repaint crossing",
 			Description: "Zebra crossing on the road left of the parking garage has faded.",
-			Coordinates: []float64{160, 600},
+			Coordinates: [][]float64{{146, 590}, {176, 588}, {177, 612}, {147, 614}},
 		},
 	}
 	nextPinID = 4
@@ -226,8 +226,13 @@ func validatePin(p Pin) string {
 	if p.Status != PinStatusTodo && p.Status != PinStatusDone {
 		return "status must be TODO or DONE"
 	}
-	if len(p.Coordinates) != 2 {
-		return "coordinates must be a [x, y] pair"
+	if len(p.Coordinates) == 0 {
+		return "coordinates must contain at least 1 point"
+	}
+	for _, pt := range p.Coordinates {
+		if len(pt) != 2 {
+			return "each coordinate must be a [x, y] pair"
+		}
 	}
 	if p.AreaID != nil && !areaExists(p.MapID, *p.AreaID) {
 		return "area_id does not reference an area on this map"

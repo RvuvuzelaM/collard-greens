@@ -37,9 +37,9 @@ An area body looks like `{"name","description","coordinates":[[x,y],...]}`; `map
 the URL. `name` is required and `coordinates` needs at least 3 `[x, y]` points. Invalid input
 returns `400`.
 
-A pin body looks like `{"name","description","status","area_id","coordinates":[x,y]}`; `map_id`
+A pin body looks like `{"name","description","status","area_id","coordinates":[[x,y],...]}`; `map_id`
 comes from the URL. `name` is required, `status` is `TODO` (default) or `DONE`, `coordinates` is a
-single `[x, y]` point and `area_id` is optional (`null` or omitted for no area). When set,
+list of at least 1 `[x, y]` point and `area_id` is optional (`null` or omitted for no area). When set,
 `area_id` must be an area on the same map. Send `"area_id": null` in a PATCH to unlink the area.
 
 Coordinates for areas and pins are pixels on the map image, origin top-left.
@@ -78,21 +78,18 @@ curl -X PATCH http://localhost:8080/maps/1/areas/1 \
   -H 'Content-Type: application/json' \
   -d '{"name":"Field A (renamed)"}'
 
-# delete area 1 on map 1 (linked pins are unlinked, not deleted)
-curl -i -X DELETE http://localhost:8080/maps/1/areas/1
-
 # list pins on map 1
 curl http://localhost:8080/maps/1/pins
 
 # create a pin on map 1 linked to area 1
 curl -X POST http://localhost:8080/maps/1/pins \
   -H 'Content-Type: application/json' \
-  -d '{"name":"Fix sign","description":"Hospital sign is crooked","area_id":"1","coordinates":[60,400]}'
+  -d '{"name":"Fix sign","description":"Hospital sign is crooked","area_id":"1","coordinates":[[60,400],[70,410]]}'
 
 # create a pin on map 1 without an area
 curl -X POST http://localhost:8080/maps/1/pins \
   -H 'Content-Type: application/json' \
-  -d '{"name":"Pothole","coordinates":[200,300]}'
+  -d '{"name":"Pothole","coordinates":[[200,300]]}'
 
 # get a single pin on map 1
 curl http://localhost:8080/maps/1/pins/1
@@ -109,4 +106,7 @@ curl -X PATCH http://localhost:8080/maps/1/pins/1 \
 
 # delete pin 1 on map 1
 curl -i -X DELETE http://localhost:8080/maps/1/pins/1
+
+# delete area 1 on map 1 (linked pins are unlinked, not deleted)
+curl -i -X DELETE http://localhost:8080/maps/1/areas/1
 ```
