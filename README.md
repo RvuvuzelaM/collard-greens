@@ -57,7 +57,9 @@ returns `400`; an unknown map or area returns `404`.
 Data is stored in a single JSON file (`./data/db.json`, mounted into the container). Images are
 base64-encoded inside it. The file is re-read on every request, so you can edit it by hand.
 
-A sample map is included: an aerial photo of a park, with id `sample-park`.
+A sample map is included: an aerial photo of a park (626 × 582 px), with id `sample-park`. It has
+one sample area, `sample-out-of-bounds`, whose points deliberately go past the image's right and
+bottom edges, so you can check how the frontend handles coordinates outside the image.
 
 Every response is JSON. Errors have the shape `{"error":"<message>"}`, for example an unknown
 route returns `404` with `{"error":"not found"}`.
