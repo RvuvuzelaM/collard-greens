@@ -2,6 +2,9 @@ package server
 
 import (
 	"crypto/rand"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"log/slog"
 	"net/http"
@@ -45,6 +48,11 @@ func handleUploadMap(s *store) http.HandlerFunc {
 		contentType := http.DetectContentType(data)
 		if !strings.HasPrefix(contentType, "image/") {
 			writeError(w, http.StatusBadRequest, "file is not an image: "+contentType)
+			return
+		}
+		// Areas are checked against the image size, so it must be readable.
+		if _, _, err := imageSize(data); err != nil {
+			writeError(w, http.StatusBadRequest, "unsupported image, use PNG, JPEG or GIF: "+contentType)
 			return
 		}
 

@@ -111,25 +111,30 @@ func (s *store) all() (db, error) {
 	return s.load()
 }
 
-func hasMap(d db, id string) bool {
+func findMap(d db, id string) (Map, bool) {
 	for _, m := range d.Maps {
 		if m.ID == id {
-			return true
+			return m, true
 		}
 	}
-	return false
+	return Map{}, false
 }
 
-// addArea stores a and reports whether its map exists. Nothing is saved if it doesn't.
-func (s *store) addArea(a Area) (bool, error) {
+// addArea stores a and reports whether its map exists. Nothing is saved if the
+// map doesn't exist or check returns an error, which is passed through unchanged.
+func (s *store) addArea(a Area, check func(Map) error) (bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	d, err := s.load()
 	if err != nil {
 		return false, err
 	}
-	if !hasMap(d, a.MapID) {
+	m, ok := findMap(d, a.MapID)
+	if !ok {
 		return false, nil
+	}
+	if err := check(m); err != nil {
+		return true, err
 	}
 	d.Areas = append(d.Areas, a)
 	return true, s.save(d)
@@ -143,7 +148,7 @@ func (s *store) listAreas(mapID string) ([]Area, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
-	if !hasMap(d, mapID) {
+	if _, ok := findMap(d, mapID); !ok {
 		return nil, false, nil
 	}
 	areas := []Area{}
@@ -155,9 +160,9 @@ func (s *store) listAreas(mapID string) ([]Area, bool, error) {
 	return areas, true, nil
 }
 
-// updateArea runs apply on the stored area and saves it, unless apply returns an
-// error, which is passed through unchanged.
-func (s *store) updateArea(id string, apply func(*Area) error) (Area, bool, error) {
+// updateArea runs apply on the stored area and the map it belongs to, then saves
+// it, unless apply returns an error, which is passed through unchanged.
+func (s *store) updateArea(id string, apply func(*Area, Map) error) (Area, bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	d, err := s.load()
@@ -168,7 +173,8 @@ func (s *store) updateArea(id string, apply func(*Area) error) (Area, bool, erro
 		if d.Areas[i].ID != id {
 			continue
 		}
-		if err := apply(&d.Areas[i]); err != nil {
+		m, _ := findMap(d, d.Areas[i].MapID)
+		if err := apply(&d.Areas[i], m); err != nil {
 			return Area{}, true, err
 		}
 		return d.Areas[i], true, s.save(d)

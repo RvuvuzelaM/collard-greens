@@ -27,7 +27,7 @@ CORS is open, so you can call it from any local dev server (Vite, Next.js, Angul
 | PATCH  | `/areas/{id}` | `200` with the updated area |
 | DELETE | `/areas/{id}` | `204` |
 
-`POST /maps` takes `multipart/form-data` with an `image` file field (max 10 MB) and an optional
+`POST /maps` takes `multipart/form-data` with an `image` file field (PNG, JPEG or GIF, max 10 MB) and an optional
 `name` field (defaults to the file name).
 
 An area is a marked region on a map:
@@ -44,8 +44,8 @@ An area is a marked region on a map:
 }
 ```
 
-- `coords` is a list of `[x, y]` pixel positions on the map image: whole numbers, not negative,
-  at least one point.
+- `coords` is a list of `[x, y]` pixel positions on the map image: whole numbers, at least one
+  point, each inside the image (`0 ≤ x < width`, `0 ≤ y < height`).
 - `color` is `[r, g, b]`, each `0`–`255`.
 - `status` is `TODO` or `DONE`, and defaults to `TODO` on create.
 - `title` is required.
@@ -57,9 +57,8 @@ returns `400`; an unknown map or area returns `404`.
 Data is stored in a single JSON file (`./data/db.json`, mounted into the container). Images are
 base64-encoded inside it. The file is re-read on every request, so you can edit it by hand.
 
-A sample map is included: an aerial photo of a park (626 × 582 px), with id `sample-park`. It has
-one sample area, `sample-out-of-bounds`, whose points deliberately go past the image's right and
-bottom edges, so you can check how the frontend handles coordinates outside the image.
+A sample map is included: an aerial photo of a park (626 × 582 px), with id `sample-park`, and
+one sample area on it, `sample-area`.
 
 Every response is JSON. Errors have the shape `{"error":"<message>"}`, for example an unknown
 route returns `404` with `{"error":"not found"}`.

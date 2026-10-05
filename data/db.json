@@ -10,9 +10,9 @@
   ],
   "areas": [
     {
-      "id": "sample-out-of-bounds",
+      "id": "sample-area",
       "mapId": "sample-park",
-      "title": "Out of bounds (sample)",
+      "title": "Sample area",
       "status": "TODO",
       "color": [
         255,
@@ -21,20 +21,20 @@
       ],
       "coords": [
         [
-          580,
-          540
+          480,
+          440
         ],
         [
-          700,
-          540
+          600,
+          440
         ],
         [
-          700,
-          650
+          600,
+          560
         ],
         [
-          580,
-          650
+          480,
+          560
         ]
       ],
       "createdAt": "2026-10-05T00:00:00Z"
