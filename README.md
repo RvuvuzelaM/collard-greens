@@ -47,7 +47,7 @@ An area is a marked region on a map:
 - `coords` is a list of `[x, y]` pixel positions on the map image: whole numbers, at least one
   point, each inside the image (`0 ≤ x < width`, `0 ≤ y < height`).
 - `color` is `[r, g, b]`, each `0`–`255`.
-- `status` is `TODO` or `DONE`, and defaults to `TODO` on create.
+- `status` is `TODO`, `IN_PROGRESS` or `DONE`, and defaults to `TODO` on create.
 - `title` is required.
 
 `POST /maps/{id}/areas` takes `title`, `color`, `coords` and an optional `status` as JSON.

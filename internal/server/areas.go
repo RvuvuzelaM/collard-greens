@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	statusTodo = "TODO"
-	statusDone = "DONE"
+	statusTodo       = "TODO"
+	statusInProgress = "IN_PROGRESS"
+	statusDone       = "DONE"
 )
 
 // validationError is a client mistake in an area, reported as a 400.
@@ -30,8 +31,8 @@ func validateArea(a Area) error {
 	if strings.TrimSpace(a.Title) == "" {
 		return invalid(`"title" is required`)
 	}
-	if a.Status != statusTodo && a.Status != statusDone {
-		return invalid(`"status" must be %q or %q`, statusTodo, statusDone)
+	if a.Status != statusTodo && a.Status != statusInProgress && a.Status != statusDone {
+		return invalid(`"status" must be %q, %q or %q`, statusTodo, statusInProgress, statusDone)
 	}
 	if len(a.Color) != 3 {
 		return invalid(`"color" must be [r, g, b]`)
