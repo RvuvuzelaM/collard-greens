@@ -90,3 +90,13 @@ func (s *store) getMap(id string) (Map, bool, error) {
 	}
 	return Map{}, false, nil
 }
+
+func (s *store) listMaps() ([]Map, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	d, err := s.load()
+	if err != nil {
+		return nil, err
+	}
+	return d.Maps, nil
+}

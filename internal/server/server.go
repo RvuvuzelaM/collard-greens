@@ -17,6 +17,7 @@ func New() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", handleHealthz)
+	mux.HandleFunc("GET /maps", handleListMaps(s))
 	mux.HandleFunc("POST /maps", handleUploadMap(s))
 	mux.HandleFunc("GET /maps/{id}/image", handleDownloadMap(s))
 	mux.HandleFunc("/", handleNotFound)

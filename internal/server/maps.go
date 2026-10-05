@@ -95,3 +95,26 @@ func handleDownloadMap(s *store) http.HandlerFunc {
 		}
 	}
 }
+
+// handleListMaps returns metadata for all maps, without the image bytes.
+func handleListMaps(s *store) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		maps, err := s.listMaps()
+		if err != nil {
+			slog.Error("list maps", "err", err)
+			writeError(w, http.StatusInternalServerError, "could not list maps")
+			return
+		}
+
+		resp := make([]mapResponse, 0, len(maps))
+		for _, m := range maps {
+			resp = append(resp, mapResponse{
+				ID:          m.ID,
+				Name:        m.Name,
+				ContentType: m.ContentType,
+				CreatedAt:   m.CreatedAt,
+			})
+		}
+		writeJSON(w, http.StatusOK, resp)
+	}
+}

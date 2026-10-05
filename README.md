@@ -19,6 +19,7 @@ CORS is open, so you can call it from any local dev server (Vite, Next.js, Angul
 | Method | Path       | Response          |
 |--------|------------|-------------------|
 | GET    | `/healthz` | `{"status":"ok"}` |
+| GET    | `/maps`    | `200` with `[{"id","name","contentType","createdAt"}, ...]` (no image data) |
 | POST   | `/maps`    | `201` with `{"id","name","contentType","createdAt"}` |
 | GET    | `/maps/{id}/image` | raw image bytes (`Content-Type` of the image) |
 
@@ -38,6 +39,9 @@ route returns `404` with `{"error":"not found"}`.
 ```
 # health check
 curl http://localhost:8080/healthz
+
+# list all maps
+curl http://localhost:8080/maps
 
 # upload a map
 curl -F "image=@map.png" -F "name=Office floor 1" http://localhost:8080/maps
