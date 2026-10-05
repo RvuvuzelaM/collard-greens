@@ -18,9 +18,22 @@ type Map struct {
 	Image       []byte    `json:"image"`
 }
 
+// Area is a marked region on a map. Coords are [x, y] pixel positions on the
+// map image and Color is [r, g, b].
+type Area struct {
+	ID        string    `json:"id"`
+	MapID     string    `json:"mapId"`
+	Title     string    `json:"title"`
+	Status    string    `json:"status"`
+	Color     []int     `json:"color"`
+	Coords    [][]int   `json:"coords"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 // db is the shape of the JSON file on disk.
 type db struct {
-	Maps []Map `json:"maps"`
+	Maps  []Map  `json:"maps"`
+	Areas []Area `json:"areas"`
 }
 
 // store is a single JSON file. It is re-read on every call, so the file can be
@@ -91,12 +104,90 @@ func (s *store) getMap(id string) (Map, bool, error) {
 	return Map{}, false, nil
 }
 
-func (s *store) listMaps() ([]Map, error) {
+// all returns the whole database, so maps and their areas come from one read.
+func (s *store) all() (db, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.load()
+}
+
+func hasMap(d db, id string) bool {
+	for _, m := range d.Maps {
+		if m.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+// addArea stores a and reports whether its map exists. Nothing is saved if it doesn't.
+func (s *store) addArea(a Area) (bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	d, err := s.load()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
-	return d.Maps, nil
+	if !hasMap(d, a.MapID) {
+		return false, nil
+	}
+	d.Areas = append(d.Areas, a)
+	return true, s.save(d)
+}
+
+// listAreas returns the areas of a map and reports whether the map exists.
+func (s *store) listAreas(mapID string) ([]Area, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	d, err := s.load()
+	if err != nil {
+		return nil, false, err
+	}
+	if !hasMap(d, mapID) {
+		return nil, false, nil
+	}
+	areas := []Area{}
+	for _, a := range d.Areas {
+		if a.MapID == mapID {
+			areas = append(areas, a)
+		}
+	}
+	return areas, true, nil
+}
+
+// updateArea runs apply on the stored area and saves it, unless apply returns an
+// error, which is passed through unchanged.
+func (s *store) updateArea(id string, apply func(*Area) error) (Area, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	d, err := s.load()
+	if err != nil {
+		return Area{}, false, err
+	}
+	for i := range d.Areas {
+		if d.Areas[i].ID != id {
+			continue
+		}
+		if err := apply(&d.Areas[i]); err != nil {
+			return Area{}, true, err
+		}
+		return d.Areas[i], true, s.save(d)
+	}
+	return Area{}, false, nil
+}
+
+func (s *store) deleteArea(id string) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	d, err := s.load()
+	if err != nil {
+		return false, err
+	}
+	for i, a := range d.Areas {
+		if a.ID == id {
+			d.Areas = append(d.Areas[:i], d.Areas[i+1:]...)
+			return true, s.save(d)
+		}
+	}
+	return false, nil
 }

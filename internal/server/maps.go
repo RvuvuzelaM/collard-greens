@@ -17,6 +17,7 @@ type mapResponse struct {
 	Name        string    `json:"name"`
 	ContentType string    `json:"contentType"`
 	CreatedAt   time.Time `json:"createdAt"`
+	Areas       []Area    `json:"areas"`
 }
 
 // handleUploadMap accepts multipart/form-data with an "image" file and an optional "name".
@@ -70,6 +71,7 @@ func handleUploadMap(s *store) http.HandlerFunc {
 			Name:        m.Name,
 			ContentType: m.ContentType,
 			CreatedAt:   m.CreatedAt,
+			Areas:       []Area{},
 		})
 	}
 }
@@ -96,23 +98,33 @@ func handleDownloadMap(s *store) http.HandlerFunc {
 	}
 }
 
-// handleListMaps returns metadata for all maps, without the image bytes.
+// handleListMaps returns metadata and areas for all maps, without the image bytes.
 func handleListMaps(s *store) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
-		maps, err := s.listMaps()
+		d, err := s.all()
 		if err != nil {
 			slog.Error("list maps", "err", err)
 			writeError(w, http.StatusInternalServerError, "could not list maps")
 			return
 		}
 
-		resp := make([]mapResponse, 0, len(maps))
-		for _, m := range maps {
+		areasByMap := map[string][]Area{}
+		for _, a := range d.Areas {
+			areasByMap[a.MapID] = append(areasByMap[a.MapID], a)
+		}
+
+		resp := make([]mapResponse, 0, len(d.Maps))
+		for _, m := range d.Maps {
+			areas := areasByMap[m.ID]
+			if areas == nil {
+				areas = []Area{}
+			}
 			resp = append(resp, mapResponse{
 				ID:          m.ID,
 				Name:        m.Name,
 				ContentType: m.ContentType,
 				CreatedAt:   m.CreatedAt,
+				Areas:       areas,
 			})
 		}
 		writeJSON(w, http.StatusOK, resp)
