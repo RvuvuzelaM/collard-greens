@@ -11,8 +11,10 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/api ./c
 # ---- runtime stage ----
 FROM alpine:3.22
 RUN apk add --no-cache ca-certificates wget \
-    && adduser -D -u 10001 app
+    && adduser -D -u 10001 app \
+    && mkdir /data && chown app /data
 USER app
+ENV DATA_FILE=/data/db.json
 
 COPY --from=build /out/api /usr/local/bin/api
 

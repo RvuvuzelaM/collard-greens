@@ -1,13 +1,24 @@
 // Package server wires up the HTTP router, handlers and middleware for the API.
 package server
 
-import "net/http"
+import (
+	"net/http"
+	"os"
+)
 
 // New builds the root http.Handler with all routes and middleware attached.
 func New() http.Handler {
+	dataFile := os.Getenv("DATA_FILE")
+	if dataFile == "" {
+		dataFile = "data/db.json"
+	}
+	s := newStore(dataFile)
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", handleHealthz)
+	mux.HandleFunc("POST /maps", handleUploadMap(s))
+	mux.HandleFunc("GET /maps/{id}/image", handleDownloadMap(s))
 	mux.HandleFunc("/", handleNotFound)
 
 	return logging(cors(mux))
