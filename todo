@@ -1,0 +1,5 @@
+[x] uploading and downloading maps
+[x] getting all the maps
+[ ] saving points on the map
+    - area - list of x, y coords (can be 1, can be 2, can be 15), color, title, status (TODO, IN_PROGRESS, DONE), reference to the map
+    - 

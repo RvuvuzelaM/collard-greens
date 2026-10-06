@@ -1,0 +1,9 @@
+name: green-field
+
+services:
+  api:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
