@@ -10,8 +10,28 @@
         "description": "Barn and house next to the main road.",
         "coordinates": [
           [
-            760,
+            648,
             470
+          ],
+          [
+            700,
+            425
+          ],
+          [
+            820,
+            425
+          ],
+          [
+            872,
+            470
+          ],
+          [
+            820,
+            515
+          ],
+          [
+            700,
+            515
           ]
         ]
       },
@@ -20,8 +40,20 @@
         "description": "Where the road crosses the river.",
         "coordinates": [
           [
-            1270,
-            540
+            1225,
+            512
+          ],
+          [
+            1321,
+            512
+          ],
+          [
+            1321,
+            572
+          ],
+          [
+            1225,
+            572
           ]
         ]
       },
@@ -30,8 +62,28 @@
         "description": "Watering hole in the sheep pasture.",
         "coordinates": [
           [
-            540,
+            468,
             1420
+          ],
+          [
+            504,
+            1380
+          ],
+          [
+            576,
+            1380
+          ],
+          [
+            612,
+            1420
+          ],
+          [
+            576,
+            1460
+          ],
+          [
+            504,
+            1460
           ]
         ]
       },
@@ -54,6 +106,28 @@
           [
             1060,
             1040
+          ]
+        ]
+      },
+      {
+        "name": "Plowed field",
+        "description": "Bare soil, waiting for sowing.",
+        "coordinates": [
+          [
+            560,
+            640
+          ],
+          [
+            990,
+            650
+          ],
+          [
+            990,
+            1040
+          ],
+          [
+            550,
+            1050
           ]
         ]
       }

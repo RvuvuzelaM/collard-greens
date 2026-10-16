@@ -182,8 +182,8 @@ func validatePoints(ps []store.Point) string {
 		if ps[i].Name == "" {
 			return fmt.Sprintf("points[%d].name is required", i)
 		}
-		if len(ps[i].Coordinates) == 0 {
-			return fmt.Sprintf("points[%d].coordinates must contain at least one [x, y] pair", i)
+		if ps[i].Coordinates == nil {
+			ps[i].Coordinates = [][]float64{}
 		}
 		for j, c := range ps[i].Coordinates {
 			if len(c) != 2 {

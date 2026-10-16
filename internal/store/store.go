@@ -13,11 +13,11 @@ import (
 	"time"
 )
 
-// Point is something drawn on the map: one or more pixel coordinates with a label.
+// Point is a polygon drawn on the map: its vertices as pixel coordinates, with a label.
 type Point struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
-	Coordinates [][]float64 `json:"coordinates"` // [[x, y], ...]
+	Coordinates [][]float64 `json:"coordinates"` // [[x, y], [x, y], [x, y], ...]
 }
 
 // Map is an uploaded image (base64 data URL) with points drawn on it.

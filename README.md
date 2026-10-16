@@ -17,8 +17,8 @@ CORS is open, so you can call it from any local dev server (Vite, Next.js, Angul
 ## Data and mock
 
 Everything is stored in `./data/maps.json`, which is mounted into the container. It ships with one
-mock map, id `sample-farm`: a 1600x1600 top-down drawing of a farm with four points on it (three
-single pixels and one four-corner outline).
+mock map, id `sample-farm`: a 1600x1600 top-down drawing of a farm with five polygons on it
+(farmyard, bridge, pond, orchard, plowed field).
 
 To reset to the mock state, run `git checkout -- data`.
 
@@ -41,8 +41,8 @@ To reset to the mock state, run `git checkout -- data`.
   "description": "Top-down view of a small farm ...",
   "image": "data:image/png;base64,iVBORw0KGgo...",
   "points": [
-    { "name": "Farmyard", "description": "Barn and house next to the main road.", "coordinates": [[760, 470]] },
-    { "name": "Orchard",  "description": "Fruit trees, outlined corner by corner.", "coordinates": [[1060, 655], [1560, 650], [1560, 1040], [1060, 1040]] }
+    { "name": "Bridge",  "description": "Where the road crosses the river.",       "coordinates": [[1225, 512], [1321, 512], [1321, 572], [1225, 572]] },
+    { "name": "Orchard", "description": "Fruit trees, outlined corner by corner.", "coordinates": [[1060, 655], [1560, 650], [1560, 1040], [1060, 1040]] }
   ],
   "createdAt": "2026-10-16T08:00:00Z",
   "updatedAt": "2026-10-16T08:00:00Z"
@@ -52,9 +52,10 @@ To reset to the mock state, run `git checkout -- data`.
 - `image` is the uploaded picture as base64. Send either a data URL (`data:image/png;base64,...`)
   or the bare base64 string; the API always stores and returns a data URL, so it can go straight
   into `<img src>`. PNG, JPEG, GIF and WebP are accepted. Request bodies may be up to 32 MiB.
-- `points` are things drawn on the map. Each has a `name` (required), a `description` and
-  `coordinates`: an array of `[x, y]` pixel pairs, so a single pin is `[[x, y]]` and an outline is
-  several pairs. At least one pair is required.
+- `points` are polygons drawn on the map. Each has a `name` (required), a `description` and
+  `coordinates`: the polygon's vertices as `[x, y]` pixel pairs in drawing order, for example
+  `[[x, y], [x, y], [x, y]]`. The shape is closed implicitly (last vertex connects back to the
+  first).
 - `POST /maps` needs `name` and `image`; `description` and `points` are optional.
 - `PUT /maps/{id}` takes any subset of `name`, `description`, `image`, `points`. Fields you leave out
   stay as they are. `points` replaces the whole list, so to add a point send the existing points
@@ -86,7 +87,7 @@ curl -X POST http://localhost:8080/maps \
 curl -X PUT http://localhost:8080/maps/sample-farm \
   -H "Content-Type: application/json" \
   -d '{"points":[
-        {"name":"Gate","description":"Main entrance","coordinates":[[120,480]]},
+        {"name":"Gate","description":"Main entrance","coordinates":[[100,460],[140,460],[140,500],[100,500]]},
         {"name":"North field","description":"Wheat","coordinates":[[40,40],[600,30],[630,420],[70,440]]}
       ]}'
 
