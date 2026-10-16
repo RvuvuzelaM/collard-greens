@@ -17,8 +17,8 @@ CORS is open, so you can call it from any local dev server (Vite, Next.js, Angul
 ## Data and mock
 
 Everything is stored in `./data/maps.json`, which is mounted into the container. It ships with one
-mock map, id `sample-farm`: a 1600x1600 top-down drawing of a farm with five polygons on it
-(farmyard, bridge, pond, orchard, plowed field).
+mock map, id `park-miejski`: a 1600x1600 top-down drawing of a city park with six polygons on it
+(pond, playground, fountain, meadow, court, gazebo). Names and descriptions in the mock data are in Polish.
 
 To reset to the mock state, run `git checkout -- data`.
 
@@ -36,13 +36,13 @@ To reset to the mock state, run `git checkout -- data`.
 
 ```json
 {
-  "id": "sample-farm",
-  "name": "Sample Farm",
-  "description": "Top-down view of a small farm ...",
+  "id": "park-miejski",
+  "name": "Park Miejski",
+  "description": "Widok z góry na park miejski ...",
   "image": "data:image/png;base64,iVBORw0KGgo...",
   "points": [
-    { "name": "Bridge",  "description": "Where the road crosses the river.",       "coordinates": [[1225, 512], [1321, 512], [1321, 572], [1225, 572]] },
-    { "name": "Orchard", "description": "Fruit trees, outlined corner by corner.", "coordinates": [[1060, 655], [1560, 650], [1560, 1040], [1060, 1040]] }
+    { "name": "Boisko", "description": "Boisko do koszykówki z ceglastą nawierzchnią.", "coordinates": [[1080, 1080], [1420, 1080], [1420, 1300], [1080, 1300]] },
+    { "name": "Polana", "description": "Łąka kwietna, miejsce na piknik.",             "coordinates": [[220, 260], [640, 230], [680, 560], [520, 660], [240, 620]] }
   ],
   "createdAt": "2026-10-16T08:00:00Z",
   "updatedAt": "2026-10-16T08:00:00Z"
@@ -71,11 +71,11 @@ returns `404` with `{"error":"not found"}`.
 # health check
 curl http://localhost:8080/healthz
 
-# list maps (contains the mock "Sample Farm")
+# list maps (contains the mock "Park Miejski")
 curl http://localhost:8080/maps
 
 # read the mock map (big: includes the base64 image)
-curl http://localhost:8080/maps/sample-farm
+curl http://localhost:8080/maps/park-miejski
 
 # add a map from a local image (macOS base64; on Linux use: base64 -w0 map.png)
 IMG=$(base64 -i map.png)
@@ -84,22 +84,22 @@ curl -X POST http://localhost:8080/maps \
   -d "{\"name\":\"My field\",\"description\":\"Drone shot from May\",\"image\":\"$IMG\"}"
 
 # edit a map: add points (replaces the whole points list)
-curl -X PUT http://localhost:8080/maps/sample-farm \
+curl -X PUT http://localhost:8080/maps/park-miejski \
   -H "Content-Type: application/json" \
   -d '{"points":[
-        {"name":"Gate","description":"Main entrance","coordinates":[[100,460],[140,460],[140,500],[100,500]]},
-        {"name":"North field","description":"Wheat","coordinates":[[40,40],[600,30],[630,420],[70,440]]}
+        {"name":"Brama główna","description":"Wejście od strony północnej","coordinates":[[760,40],[840,40],[840,100],[760,100]]},
+        {"name":"Polana","description":"Łąka kwietna, miejsce na piknik.","coordinates":[[220,260],[640,230],[680,560],[520,660],[240,620]]}
       ]}'
 
 # edit a map: rename only
-curl -X PUT http://localhost:8080/maps/sample-farm \
+curl -X PUT http://localhost:8080/maps/park-miejski \
   -H "Content-Type: application/json" \
-  -d '{"name":"Sample Farm (renamed)"}'
+  -d '{"name":"Park Miejski (nowa nazwa)"}'
 
 # validation errors -> 400
 curl -i -X POST http://localhost:8080/maps -H "Content-Type: application/json" -d '{"name":"No image"}'
 curl -i -X POST http://localhost:8080/maps -H "Content-Type: application/json" -d '{"name":"Bad image","image":"not-base64!"}'
-curl -i -X PUT  http://localhost:8080/maps/sample-farm -H "Content-Type: application/json" -d '{"points":[{"name":"Broken","coordinates":[[1,2,3]]}]}'
+curl -i -X PUT  http://localhost:8080/maps/park-miejski -H "Content-Type: application/json" -d '{"points":[{"name":"Broken","coordinates":[[1,2,3]]}]}'
 
 # unknown map -> 404
 curl -i http://localhost:8080/maps/nope
