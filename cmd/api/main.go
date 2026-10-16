@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"green-field/backend/internal/server"
+	"green-field/backend/internal/store"
 )
 
 const addr = ":8080"
@@ -19,9 +20,20 @@ const addr = ":8080"
 func main() {
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, nil)))
 
+	dataDir := os.Getenv("DATA_DIR")
+	if dataDir == "" {
+		dataDir = "./data"
+	}
+	st, err := store.Open(dataDir)
+	if err != nil {
+		slog.Error("open data dir", "dir", dataDir, "err", err)
+		os.Exit(1)
+	}
+	slog.Info("using data dir", "dir", dataDir)
+
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           server.New(),
+		Handler:           server.New(st),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      30 * time.Second,

@@ -20,7 +20,7 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, map[string]string{"error": msg})
 }
 
-const maxBodyBytes = 1 << 20
+const maxBodyBytes = 32 << 20 // base64 images come in JSON bodies
 
 // decodeJSON reads the request body into v, writing a 400 on failure.
 func decodeJSON(w http.ResponseWriter, r *http.Request, v any) bool {
